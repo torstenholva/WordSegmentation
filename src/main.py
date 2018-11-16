@@ -1,48 +1,82 @@
 import os
+import argparse
 import cv2
 from WordSegmentation import wordSegmentation, prepareImg
 
 
+class DirPaths:
+    "paths to data"
+    fnInPath = ''
+    fnMiddlePath = ''
+    fnOutPath = ''
+
+
 def main():
-	"""reads images from data/ and outputs the word-segmentation to out/"""
+    """reads images from data/ and outputs the word-segmentation to out/"""
 
-	# read input images from 'in' directory
-	#imgFiles = os.listdir('../data/')
-	imgFiles = os.listdir('../../00_in/')
+    # optional command line args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-fi', help="<inPath> (example: 02_deslanted/) ../../<inPath> to read the handwriting images from.")
+    parser.add_argument('-fm', help="<middlePath> (example: 0.png/) ../../<inPath><middlePath> AND ../../<outPath><middlePath>")
+    parser.add_argument('-fo', help="<outPath> (example: 01_segmented/) ../../<outPath> to write the recognized words to.")
+    args = parser.parse_args()
 
-	for (i,f) in enumerate(imgFiles):
-		print('Segmenting words of sample %s'%f)
-		
-		# read image, prepare it by resizing it to fixed height and converting it to grayscale
-		#img = prepareImg(cv2.imread('../data/%s'%f), 50)
-		img = prepareImg(cv2.imread('../../00_in/%s'%f), 50)
-		
-		# execute segmentation with given parameters
-		# -kernelSize: size of filter kernel (odd integer)
-		# -sigma: standard deviation of Gaussian function used for filter kernel
-		# -theta: approximated width/height ratio of words, filter function is distorted by this factor
-		# - minArea: ignore word candidates smaller than specified area
-		res = wordSegmentation(img, kernelSize=25, sigma=11, theta=7, minArea=100)
-		
-		# write output to 'out/inputFileName' directory
-		#if not os.path.exists('../out/%s'%f):
-		if not os.path.exists('../../01_segmented/%s'%f):
-			os.mkdir('../../01_segmented/%s'%f)
-			#os.mkdir('../out/%s'%f)
-		
-		# iterate over all segmented words
-		print('Segmented into %d words'%len(res))
-		for (j, w) in enumerate(res):
-			(wordBox, wordImg) = w
-			(x, y, w, h) = wordBox
-			# cv2.imwrite('../out/%s/%d.png'%(f, j), wordImg) # save word
-			cv2.imwrite('../../01_segmented/%s/%d.png'%(f, j), wordImg) # save word
-			cv2.rectangle(img,(x,y),(x+w,y+h),0,1) # draw bounding box in summary image
-		
-		# output summary image with bounding boxes around words
-		# cv2.imwrite('../out/%s/summary.png'%f, img)
-		cv2.imwrite('../../01_segmented/%s/summary.png'%f, img)
+    if args.fi:
+        DirPaths.fnInPath = args.fi
+        print(DirPaths.fnInPath)
+    if args.fm:
+        DirPaths.fnMiddlePath = args.fm
+        print(DirPaths.fnMiddlePath)
+    if args.fo:
+        DirPaths.fnOutPath = args.fo
+        print(DirPaths.fnOutPath)
+
+    # read input images from 'in' directory
+    inPath = '../../' + DirPaths.fnInPath + DirPaths.fnMiddlePath
+    outPath = '../../' + DirPaths.fnOutPath + DirPaths.fnMiddlePath
+
+    if not os.path.exists(inPath):
+        print("No such path!")
+        return(1)
+
+    imgFiles = os.listdir(inPath)
+    print(imgFiles)
+
+    for (i,f) in enumerate(imgFiles):
+        print('Segmenting words of sample ' + inPath + '%s'%f)
+
+        # If a directory pass it
+        if os.path.isdir(inPath + '%s'%f) and DirPaths.fnMiddlePath == '':
+            print('This is not a file, passing: %s'%f)
+            continue
+
+        # read image, prepare it by resizing it to fixed height and converting it to grayscale
+        img = prepareImg(cv2.imread(inPath + '%s'%f), 50)
+
+        # execute segmentation with given parameters
+        # -kernelSize: size of filter kernel (odd integer)
+        # -sigma: standard deviation of Gaussian function used for filter kernel
+        # -theta: approximated width/height ratio of words, filter function is distorted by this factor
+        # - minArea: ignore word candidates smaller than specified area
+        res = wordSegmentation(img, kernelSize=25, sigma=11, theta=7, minArea=100)
+        # write output to 'out/inputFileName' directory
+        if not os.path.exists(outPath + '%s'%f):
+            print("Created directory %s"%f)
+            os.mkdir(outPath + '%s'%f)
+
+        # iterate over all segmented words
+        print('Segmented into %d words'%len(res))
+        for (j, w) in enumerate(res):
+            print(inPath + '%s'%f + " => " + outPath + '%s/%d.png'%(f, j))
+            (wordBox, wordImg) = w
+            (x, y, w, h) = wordBox
+            cv2.imwrite(outPath + '%s/%d.png'%(f, j), wordImg) # save word
+            cv2.rectangle(img,(x,y),(x+w,y+h),0,1) # draw bounding box in summary image
+
+        # output summary image with bounding boxes around words
+        cv2.imwrite(outPath + '%s/summary.png'%f, img)
+        print(inPath + '%s'%f + " => " + outPath + '%s/summary.png'%f)
 
 
 if __name__ == '__main__':
-	main()
+        main()
