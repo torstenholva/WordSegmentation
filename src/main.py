@@ -14,22 +14,24 @@ class DirPaths:
 def main():
     """reads images from data/ and outputs the word-segmentation to out/"""
 
+    print("")
+
     # optional command line args
     parser = argparse.ArgumentParser()
-    parser.add_argument('-fi', help="<inPath> (example: 02_deslanted/) ../../<inPath> to read the handwriting images from.")
+    parser.add_argument('-fi', help="<inPath> (example: 01_deslanted/) ../../<inPath> to read the handwriting images from.")
     parser.add_argument('-fm', help="<middlePath> (example: 0.png/) ../../<inPath><middlePath> AND ../../<outPath><middlePath>")
-    parser.add_argument('-fo', help="<outPath> (example: 01_segmented/) ../../<outPath> to write the recognized words to.")
+    parser.add_argument('-fo', help="<outPath> (example: 02_segmented/) ../../<outPath> to write the recognized words to.")
     args = parser.parse_args()
 
     if args.fi:
         DirPaths.fnInPath = args.fi
-        print(DirPaths.fnInPath)
+        # print(DirPaths.fnInPath)
     if args.fm:
         DirPaths.fnMiddlePath = args.fm
-        print(DirPaths.fnMiddlePath)
+        # print(DirPaths.fnMiddlePath)
     if args.fo:
         DirPaths.fnOutPath = args.fo
-        print(DirPaths.fnOutPath)
+        # print(DirPaths.fnOutPath)
 
     # read input images from 'in' directory
     inPath = '../../' + DirPaths.fnInPath + DirPaths.fnMiddlePath
@@ -40,7 +42,7 @@ def main():
         return(1)
 
     imgFiles = os.listdir(inPath)
-    print(imgFiles)
+    print("Files in directory : " + " ".join(imgFiles))
 
     for (i,f) in enumerate(imgFiles):
         print('Segmenting words of sample ' + inPath + '%s'%f)
@@ -75,7 +77,7 @@ def main():
 
         # output summary image with bounding boxes around words
         cv2.imwrite(outPath + '%s/summary.png'%f, img)
-        print(inPath + '%s'%f + " => " + outPath + '%s/summary.png'%f)
+        print(inPath + '%s'%f + " => " + outPath + '%s/summary.png'%f + "\n")
 
 
 if __name__ == '__main__':
