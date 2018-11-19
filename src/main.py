@@ -41,7 +41,7 @@ def main():
         print("No such path!")
         return(1)
 
-    imgFiles = os.listdir(inPath)
+    imgFiles = sorted(os.listdir(inPath))
     print("Files in directory : " + " ".join(imgFiles))
 
     for (i,f) in enumerate(imgFiles):
@@ -81,4 +81,4 @@ def main():
 
 
 if __name__ == '__main__':
-        main()
+    main()
